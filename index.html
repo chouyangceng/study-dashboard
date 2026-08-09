@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1c3348">
+<title>考研执行看板 · 清华822</title>
+<style>
+:root{--ink:#12202e;--muted:#607081;--line:#c2ced9;--paper:#eef2f6;--deep:#1c3348;--accent:#b9d8d4;--orange:#e8835e;--green:#55b89b;--red:#d45555}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);background:var(--paper);font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
+header{background:var(--deep);color:#eef2f6;padding:16px 5vw;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+header h1{margin:0;font-size:18px}
+header h1 small{color:#9bb3c4;font-weight:400;font-size:11px;margin-left:8px}
+.week-nav{display:flex;gap:8px;align-items:center}
+.week-nav button{border:1px solid rgba(220,234,241,.3);background:transparent;color:#dce7ee;padding:7px 13px;border-radius:6px;font-size:12px;cursor:pointer}
+.week-nav b{font-size:13px;min-width:140px;text-align:center}
+main{max-width:1000px;margin:auto;padding:24px 5vw 70px}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px}
+.metric{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px}
+.metric span{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}
+.metric strong{font-size:24px;letter-spacing:-.04em}
+.metric small{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+.metric.warn{border-color:var(--red)}
+.metric.ok{border-color:var(--green)}
+.stage-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:16px}
+.stage-card h3{margin:0 0 6px;font-size:15px}
+.stage-card p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.6}
+.task-list{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.task-row{display:flex;align-items:flex-start;gap:14px;padding:15px 20px;border-bottom:1px solid var(--line)}
+.task-row:last-child{border-bottom:0}
+.task-row.done{background:#f4faf7}
+.task-row.done .task-text{color:var(--muted);text-decoration:line-through}
+.task-check{width:22px;height:22px;border:2px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;flex:0 0 auto;display:grid;place-items:center;font-size:13px;color:transparent;margin-top:1px}
+.task-check.checked{background:var(--green);border-color:var(--green);color:#fff}
+.task-info{flex:1}
+.task-text{font-size:14px;line-height:1.6}
+.task-meta{display:flex;gap:10px;margin-top:6px}
+.task-meta span{color:var(--muted);font-size:11px;background:#f0f4f8;padding:3px 9px;border-radius:20px}
+.task-row.done .task-meta span{background:transparent}
+.progress-band{display:flex;align-items:center;gap:14px;padding:14px 20px;background:#f8fafc;border-bottom:1px solid var(--line)}
+.progress-band .track{flex:1;height:10px;border-radius:5px;background:#e3e9ef;overflow:hidden}
+.progress-band .track i{display:block;height:100%;background:var(--green);border-radius:5px;transition:width .3s}
+.progress-band b{font-size:14px;min-width:60px;text-align:right}
+.check-block{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:16px 20px;margin-top:16px}
+.check-block h4{margin:0 0 8px;font-size:13px;color:var(--deep)}
+.check-block p{margin:0;font-size:13px;line-height:1.7}
+.check-block label{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:13px;cursor:pointer}
+.check-block input{margin-top:2px}
+.rules{margin-top:18px}
+.rules h3{font-size:14px;margin:0 0 10px}
+.rules .rule{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px;color:var(--muted);line-height:1.6}
+.rules .rule b{color:var(--ink);flex:0 0 200px}
+.hint{margin-top:20px;padding:14px 18px;background:#fff8ef;border:1px solid #f0dcb8;border-radius:10px;font-size:12.5px;color:#7a5a1e;line-height:1.7}
+.daily-view{margin-top:22px}
+.daily-view h3{font-size:14px;margin:0 0 12px}
+@media(max-width:640px){.rules .rule{flex-direction:column}.rules .rule b{flex-basis:auto}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎯 考研执行看板 <small>清华车辆 822 · 阶段1 高数基础+雅思+822入门</small></h1>
+  <div class="week-nav">
+    <button id="prevW">←</button>
+    <b id="weekLabel">第 1 周</b>
+    <button id="nextW">→</button>
+  </div>
+</header>
+
+<main>
+  <div class="summary">
+    <div class="metric"><span>本周完成率</span><strong id="s-rate">0%</strong><small id="s-rate-note">目标 ≥70%</small></div>
+    <div class="metric"><span>已完成 / 总数</span><strong id="s-done">0/0</strong><small>任务项</small></div>
+    <div class="metric"><span>本周验收</span><strong id="s-check" style="font-size:16px">未通过</strong><small id="s-check-note">验收标准</small></div>
+    <div class="metric"><span>今日待办</span><strong id="s-today">0</strong><small>按时间块</small></div>
+  </div>
+
+  <div class="stage-card" id="stageCard"></div>
+
+  <div class="task-list" id="taskList"></div>
+
+  <div class="check-block">
+    <h4>✅ 本周验收标准</h4>
+    <p id="weekCheck">—</p>
+    <label><input type="checkbox" id="checkDone"> 本周验收通过（能独立完成验收项）</label>
+  </div>
+
+  <div class="daily-view" id="dailyView"></div>
+
+  <div class="rules">
+    <h3>📏 执行规则（来自计划 07 页）</h3>
+    <div id="rulesBox"></div>
+  </div>
+
+  <div class="hint">
+    <b>使用说明</b><br>
+    1. 每天按时间块勾选完成的任务；<br>
+    2. 每周日勾选"验收通过"，系统自动算完成率；<br>
+    3. 完成率 &lt;70% → 下周新内容减 20%，先补欠账（规则自动提示）；<br>
+    4. 数据只存本浏览器；可与 822 考研引擎、错题本配合使用。
+  </div>
+</main>
+
+<script src="plan-data.js"></script>
+<script>
+const KEY = 'kaoyan_dashboard';
+let state = load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{done:{},checks:{}}}catch{return{done:{},checks:{}}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
+
+let currentWeek = 1;
+const $ = s => document.querySelector(s);
+
+function weekPlan(w){ return WEEK_PLANS.find(x => x.week === w) || WEEK_PLANS[0]; }
+function stageOf(w){ const p = weekPlan(w); return STAGES.find(s => s.id === p.stage); }
+
+function render(){
+  const plan = weekPlan(currentWeek);
+  const stage = stageOf(currentWeek);
+  const doneCount = plan.tasks.filter(t => state.done[`${currentWeek}-${plan.tasks.indexOf(t)}`]).length;
+  const rate = Math.round(doneCount / plan.tasks.length * 100);
+  const passed = state.checks[`w${currentWeek}`] || false;
+
+  $('#weekLabel').textContent = `第 ${currentWeek} 周（${plan.range}）`;
+  $('#s-rate').textContent = rate + '%';
+  $('#s-rate-note').textContent = rate >= 70 ? '✅ 达标' : (rate >= 40 ? '⚠️ 需补欠账' : '❌ 低于70%');
+  const mRate = $('#s-rate').closest('.metric');
+  mRate.className = 'metric ' + (rate >= 70 ? 'ok' : rate >= 40 ? '' : 'warn');
+  $('#s-done').textContent = `${doneCount}/${plan.tasks.length}`;
+  $('#s-check').textContent = passed ? '✅ 通过' : '待完成';
+  $('#s-check-note').textContent = plan.check;
+  const today = new Date().getDay();
+  $('#s-today').textContent = today === 0 ? '复盘日' : plan.tasks.length + ' 项';
+
+  $('#stageCard').innerHTML = `<h3>${stage.name} · ${stage.range}</h3><p><b>本月主线：</b>${stage.focus}</p><p><b>月末验收：</b>${stage.accept}</p>`;
+
+  $('#taskList').innerHTML = `
+    <div class="progress-band">
+      <span style="font-size:12px;color:var(--muted)">本周完成率</span>
+      <div class="track"><i style="width:${rate}%"></i></div>
+      <b>${rate}%</b>
+    </div>
+    ${plan.tasks.map((t, i) => {
+      const id = `${currentWeek}-${i}`;
+      const done = state.done[id];
+      return `<div class="task-row ${done ? 'done' : ''}">
+        <button class="task-check ${done ? 'checked' : ''}" data-id="${id}">${done ? '✓' : ''}</button>
+        <div class="task-info">
+          <div class="task-text">${t.text}</div>
+          <div class="task-meta"><span>${DAY_BLOCKS.find(b => b.id === t.block)?.label || ''} ${DAY_BLOCKS.find(b => b.id === t.block)?.time || ''}</span><span>按${t.metric}计</span></div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+  $$('.task-check').forEach(b => b.onclick = () => {
+    const id = b.dataset.id;
+    state.done[id] = !state.done[id];
+    save(); render();
+  });
+
+  const checkEl = $('#checkDone');
+  checkEl.checked = !!passed;
+  checkEl.onchange = () => { state.checks[`w${currentWeek}`] = checkEl.checked; save(); render(); };
+
+  renderDaily(plan, rate);
+  $('#rulesBox').innerHTML = RULES.map(r => `<div class="rule"><b>${r.cond}</b><span>${r.action}</span></div>`).join('');
+}
+function $$(s){return [...document.querySelectorAll(s)]}
+
+function renderDaily(plan, rate){
+  const boxes = {};
+  plan.tasks.forEach((t, i) => {
+    const id = `${currentWeek}-${i}`;
+    if (!boxes[t.block]) boxes[t.block] = { tasks: [], done: 0 };
+    boxes[t.block].tasks.push({ text: t.text, done: state.done[id] });
+    if (state.done[id]) boxes[t.block].done++;
+  });
+  const today = new Date().getDay();
+  $('#dailyView').innerHTML = `<h3>📅 每日时间块${today === 0 ? '（今天周日：复盘+验收）' : ''}</h3>` +
+    DAY_BLOCKS.map(b => {
+      const box = boxes[b.id];
+      if (!box) return '';
+      const rateB = Math.round(box.done / box.tasks.length * 100);
+      return `<div class="stage-card"><h3>${b.label} ${b.time} <span style="color:var(--muted);font-size:11px;margin-left:8px">${box.done}/${box.tasks.length}</span></h3>
+        ${box.tasks.map(t => `<div class="task-row ${t.done ? 'done' : ''}"><div class="task-info"><div class="task-text" style="font-size:13px">${t.done ? '✓ ' : ''}${t.text}</div></div></div>`).join('')}
+      </div>`;
+    }).join('');
+}
+
+$('#prevW').onclick = () => { if (currentWeek > 1) { currentWeek--; render(); } };
+$('#nextW').onclick = () => { if (currentWeek < WEEK_PLANS.length) { currentWeek++; render(); } };
+
+render();
+</script>
+</body>
+</html>
