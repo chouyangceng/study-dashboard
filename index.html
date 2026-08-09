@@ -92,6 +92,14 @@ main{max-width:1000px;margin:auto;padding:24px 5vw 70px}
     <div id="rulesBox"></div>
   </div>
 
+  <div class="check-block" style="margin-top:18px">
+    <h4>📤 周复盘导出</h4>
+    <p>把本周完成情况导出为 Markdown，可直接贴进 06_周复盘打卡 页。</p>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <button class="export-btn" onclick="exportWeekReview()" style="border:1px solid var(--line);background:#fff;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer">导出本周复盘 .md</button>
+    </div>
+  </div>
+
   <div class="hint">
     <b>使用说明</b><br>
     1. 每天按时间块勾选完成的任务；<br>
@@ -110,6 +118,23 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
 
 let currentWeek = 1;
 const $ = s => document.querySelector(s);
+
+// 自动定位当前周：按计划中周次日期范围判断（2026-08-09 → 第1周）
+function detectWeek() {
+  const now = new Date();
+  const nowKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  // WEEK_PLANS 的 range 形如 '8/4-8/9'，映射到当前年份
+  let best = 1;
+  WEEK_PLANS.forEach(p => {
+    const m = p.range.match(/(\d+)\/(\d+)-(\d+)\/(\d+)/);
+    if (!m) return;
+    const start = new Date(now.getFullYear(), Number(m[1])-1, Number(m[2]));
+    const end = new Date(now.getFullYear(), Number(m[3])-1, Number(m[4]));
+    if (now >= start && now <= end) best = p.week;
+  });
+  return best;
+}
+currentWeek = detectWeek();
 
 function weekPlan(w){ return WEEK_PLANS.find(x => x.week === w) || WEEK_PLANS[0]; }
 function stageOf(w){ const p = weekPlan(w); return STAGES.find(s => s.id === p.stage); }
@@ -189,6 +214,42 @@ function renderDaily(plan, rate){
 
 $('#prevW').onclick = () => { if (currentWeek > 1) { currentWeek--; render(); } };
 $('#nextW').onclick = () => { if (currentWeek < WEEK_PLANS.length) { currentWeek++; render(); } };
+
+function exportWeekReview() {
+  const plan = weekPlan(currentWeek);
+  const stage = stageOf(currentWeek);
+  const doneCount = plan.tasks.filter(t => state.done[`${currentWeek}-${plan.tasks.indexOf(t)}`]).length;
+  const rate = Math.round(doneCount / plan.tasks.length * 100);
+  const passed = state.checks[`w${currentWeek}`] || false;
+  const L = [];
+  L.push(`# 考研周复盘 · 第${currentWeek}周（${plan.range}）`);
+  L.push('');
+  L.push(`- 阶段：${stage.name}（${stage.range}）`);
+  L.push(`- 完成率：${doneCount}/${plan.tasks.length} = ${rate}%（目标≥70%）`);
+  L.push(`- 周验收：${passed ? '✅ 通过' : '⬜ 未完成'} — ${plan.check}`);
+  L.push('');
+  L.push('## 本周任务明细');
+  plan.tasks.forEach((t, i) => {
+    const done = state.done[`${currentWeek}-${i}`];
+    const block = DAY_BLOCKS.find(b => b.id === t.block);
+    L.push(`- [${done ? 'x' : ' '}] ${block ? `${block.label}(${block.time})` : ''} ${t.text}`);
+  });
+  L.push('');
+  L.push(`## 下周调整`);
+  L.push(rate < 70 ? `- ⚠️ 完成率<70%：下周新内容减 20%，先补欠账` : `- 完成率达标，按计划推进`);
+  L.push('');
+  L.push('## 错因与备注');
+  L.push('- （待填写）');
+  L.push('');
+  L.push('---');
+  L.push('*由考研执行看板生成*');
+  const blob = new Blob([L.join('\n')], { type: 'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `考研周复盘-第${currentWeek}周-${plan.range}.md`;
+  a.click();
+  URL.revokeObjectURL(a);
+}
 
 render();
 </script>
