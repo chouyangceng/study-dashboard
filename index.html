@@ -60,6 +60,7 @@ main{max-width:1000px;margin:auto;padding:24px 5vw 70px}
 <body>
 <header>
   <h1>🎯 考研执行看板 <small>清华车辆 822 · 阶段1 高数基础+雅思+822入门</small></h1>
+  <div id="nodeCountdown" style="font-size:12px;color:#b9d8d4;font-weight:600"></div>
   <div class="week-nav">
     <button id="prevW">←</button>
     <b id="weekLabel">第 1 周</b>
@@ -116,6 +117,22 @@ let state = load();
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{done:{},checks:{}}}catch{return{done:{},checks:{}}}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
 
+function renderCountdown(){
+  const el = document.getElementById('nodeCountdown');
+  if (!el) return;
+  const now = new Date();
+  const nodes = [
+    { name: '雅思考试', date: new Date(2026, 10, 15) },
+    { name: '阶段1验收', date: new Date(2026, 10, 30) },
+    { name: '822一轮', date: new Date(2027, 2, 28) },
+    { name: '初试', date: new Date(2027, 11, 18) },
+  ];
+  const upcoming = nodes.filter(n => n.date > now).sort((a,b) => a.date - b.date);
+  if (!upcoming.length) { el.textContent = '初试已结束'; return; }
+  const next = upcoming[0];
+  const days = Math.ceil((next.date - now) / 86400000);
+  el.textContent = `⏳ 下一节点：${next.name}（${days} 天）`;
+}
 let currentWeek = 1;
 const $ = s => document.querySelector(s);
 
@@ -180,12 +197,14 @@ function render(){
   $$('.task-check').forEach(b => b.onclick = () => {
     const id = b.dataset.id;
     state.done[id] = !state.done[id];
-    save(); render();
+    save(); renderCountdown();
+render();
   });
 
   const checkEl = $('#checkDone');
   checkEl.checked = !!passed;
-  checkEl.onchange = () => { state.checks[`w${currentWeek}`] = checkEl.checked; save(); render(); };
+  checkEl.onchange = () => { state.checks[`w${currentWeek}`] = checkEl.checked; save(); renderCountdown();
+render(); };
 
   renderDaily(plan, rate);
   $('#rulesBox').innerHTML = RULES.map(r => `<div class="rule"><b>${r.cond}</b><span>${r.action}</span></div>`).join('');
@@ -212,8 +231,10 @@ function renderDaily(plan, rate){
     }).join('');
 }
 
-$('#prevW').onclick = () => { if (currentWeek > 1) { currentWeek--; render(); } };
-$('#nextW').onclick = () => { if (currentWeek < WEEK_PLANS.length) { currentWeek++; render(); } };
+$('#prevW').onclick = () => { if (currentWeek > 1) { currentWeek--; renderCountdown();
+render(); } };
+$('#nextW').onclick = () => { if (currentWeek < WEEK_PLANS.length) { currentWeek++; renderCountdown();
+render(); } };
 
 function exportWeekReview() {
   const plan = weekPlan(currentWeek);
@@ -251,6 +272,7 @@ function exportWeekReview() {
   URL.revokeObjectURL(a);
 }
 
+renderCountdown();
 render();
 </script>
 </body>
