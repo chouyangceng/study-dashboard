@@ -76,6 +76,7 @@ main{max-width:1000px;margin:auto;padding:24px 5vw 70px}
     <div class="metric"><span>今日待办</span><strong id="s-today">0</strong><small>按时间块</small></div>
   </div>
 
+  <div id="stageOverview" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
   <div class="stage-card" id="stageCard"></div>
 
   <div class="task-list" id="taskList"></div>
@@ -156,7 +157,21 @@ currentWeek = detectWeek();
 function weekPlan(w){ return WEEK_PLANS.find(x => x.week === w) || WEEK_PLANS[0]; }
 function stageOf(w){ const p = weekPlan(w); return STAGES.find(s => s.id === p.stage); }
 
-function render(){
+function renderStageOverview(){
+  const el = document.getElementById('stageOverview');
+  if (!el) return;
+  const weeks = WEEK_PLANS;
+  const stages = STAGES;
+  const html = stages.map(st => {
+    const wks = weeks.filter(w => w.stage === st.id);
+    const total = wks.reduce((n, w) => n + w.tasks.length, 0);
+    const done = wks.reduce((n, w) => n + w.tasks.filter(t => state.done[`${w.week}-${w.tasks.indexOf(t)}`]).length, 0);
+    const rate = total ? Math.round(done / total * 100) : 0;
+    return `<div style="flex:1;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center"><div style="font-size:11px;color:var(--muted)">${st.name}</div><div style="font-size:20px;font-weight:700;margin:4px 0">${rate}%</div><div style="height:5px;border-radius:3px;background:#e3e9ef;overflow:hidden"><i style="display:block;height:100%;width:${rate}%;background:${rate>=70?'var(--green)':rate>=40?'#e8b04b':'var(--red)'}"></i></div><div style="font-size:10px;color:var(--muted);margin-top:4px">${done}/${total}</div></div>`;
+  }).join('');
+  el.innerHTML = html;
+}
+function render(){renderStageOverview();
   const plan = weekPlan(currentWeek);
   const stage = stageOf(currentWeek);
   const doneCount = plan.tasks.filter(t => state.done[`${currentWeek}-${plan.tasks.indexOf(t)}`]).length;
