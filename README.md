@@ -29,3 +29,7 @@
 
 - [822 考研引擎](https://github.com/chouyangceng/822-kaoyan-engine)：考点/题型/结论卡
 - 拾题错题本、虚拟自习室：数据联动
+
+## 在线访问
+
+https://chouyangceng.github.io/kaoyan-dashboard/
