@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1c3348">
-<title>考研执行看板 · 清华822</title>
+<title>学习执行看板 · 清华822</title>
 <style>
 :root{--ink:#12202e;--muted:#607081;--line:#c2ced9;--paper:#eef2f6;--deep:#1c3348;--accent:#b9d8d4;--orange:#e8835e;--green:#55b89b;--red:#d45555}
 *{box-sizing:border-box}
@@ -59,7 +59,7 @@ main{max-width:1000px;margin:auto;padding:24px 5vw 70px}
 </head>
 <body>
 <header>
-  <h1>🎯 考研执行看板 <small>清华车辆 822 · 阶段1 高数基础+雅思+822入门</small></h1>
+  <h1>🎯 学习执行看板 <small>清华车辆 822 · 阶段1 高数基础+雅思+822入门</small></h1>
   <div id="nodeCountdown" style="font-size:12px;color:#b9d8d4;font-weight:600"></div>
   <div class="week-nav">
     <button id="prevW">←</button>
@@ -107,7 +107,7 @@ main{max-width:1000px;margin:auto;padding:24px 5vw 70px}
     1. 每天按时间块勾选完成的任务；<br>
     2. 每周日勾选"验收通过"，系统自动算完成率；<br>
     3. 完成率 &lt;70% → 下周新内容减 20%，先补欠账（规则自动提示）；<br>
-    4. 数据只存本浏览器；可与 822 考研引擎、错题本配合使用。
+    4. 数据只存本浏览器；可与 822 控制引擎、错题本配合使用。
   </div>
 </main>
 
@@ -115,7 +115,17 @@ main{max-width:1000px;margin:auto;padding:24px 5vw 70px}
 <script>
 const KEY = 'kaoyan_dashboard';
 let state = load();
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||{done:{},checks:{}}}catch{return{done:{},checks:{}}}}
+function load(){
+  const empty = {done:{}, checks:{}};
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY));
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return empty;
+    return {
+      done: saved.done && typeof saved.done === 'object' && !Array.isArray(saved.done) ? saved.done : {},
+      checks: saved.checks && typeof saved.checks === 'object' && !Array.isArray(saved.checks) ? saved.checks : {},
+    };
+  } catch { return empty; }
+}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
 
 function renderCountdown(){
@@ -201,7 +211,7 @@ function render(){renderStageOverview();
       const id = `${currentWeek}-${i}`;
       const done = state.done[id];
       return `<div class="task-row ${done ? 'done' : ''}">
-        <button class="task-check ${done ? 'checked' : ''}" data-id="${id}">${done ? '✓' : ''}</button>
+        <button type="button" class="task-check ${done ? 'checked' : ''}" data-id="${id}" aria-label="${done ? '取消完成' : '标记完成'}：${t.text}">${done ? '✓' : ''}</button>
         <div class="task-info">
           <div class="task-text">${t.text}</div>
           <div class="task-meta"><span>${DAY_BLOCKS.find(b => b.id === t.block)?.label || ''} ${DAY_BLOCKS.find(b => b.id === t.block)?.time || ''}</span><span>按${t.metric}计</span></div>
@@ -258,7 +268,7 @@ function exportWeekReview() {
   const rate = Math.round(doneCount / plan.tasks.length * 100);
   const passed = state.checks[`w${currentWeek}`] || false;
   const L = [];
-  L.push(`# 考研周复盘 · 第${currentWeek}周（${plan.range}）`);
+  L.push(`# 学习周复盘 · 第${currentWeek}周（${plan.range}）`);
   L.push('');
   L.push(`- 阶段：${stage.name}（${stage.range}）`);
   L.push(`- 完成率：${doneCount}/${plan.tasks.length} = ${rate}%（目标≥70%）`);
@@ -278,11 +288,11 @@ function exportWeekReview() {
   L.push('- （待填写）');
   L.push('');
   L.push('---');
-  L.push('*由考研执行看板生成*');
+  L.push('*由学习执行看板生成*');
   const blob = new Blob([L.join('\n')], { type: 'text/markdown;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `考研周复盘-第${currentWeek}周-${plan.range}.md`;
+  a.download = `学习周复盘-第${currentWeek}周-${plan.range}.md`;
   a.click();
   URL.revokeObjectURL(a);
 }

@@ -1,6 +1,6 @@
-# 🎯 考研执行看板 · 清华车辆 822
+# 🎯 学习执行看板 · 清华车辆 822
 
-把《清华车辆822考研计划》xlsx 变成**每日可勾选的任务清单 + 自动周复盘**。
+把《清华车辆 822 学习计划》xlsx 变成**每日可勾选的任务清单 + 自动周复盘**。
 
 ## 功能
 
@@ -17,7 +17,7 @@
 
 ## 数据源
 
-`plan-data.js` 从《清华车辆822考研计划_最新大纲重制版.xlsx》的周计划页提取：
+`plan-data.js` 从《清华车辆 822 学习计划》的周计划页提取：
 - 阶段导航（01页）→ 5 个阶段
 - 每日时间表（02页）→ 时间块
 - 详细周计划（10页）→ 每周任务
@@ -27,9 +27,9 @@
 
 ## 配套工具
 
-- [822 考研引擎](https://github.com/chouyangceng/822-kaoyan-engine)：考点/题型/结论卡
+- [822 控制引擎](https://github.com/chouyangceng/822-kaoyan-engine)：考点/题型/结论卡
 - 拾题错题本、虚拟自习室：数据联动
 
 ## 在线访问
 
-https://chouyangceng.github.io/kaoyan-dashboard/
+https://chouyangceng.github.io/study-dashboard/
